@@ -1,0 +1,20 @@
+# I simple way of creating db from dumps:
+sudo docker run --name mysql-1 -v /home/ads-mysql/mysql-1:/var/lib/mysql -v /home/ads-mysql/initdb.d:/docker-entrypoint-initdb.d -e MYSQL_ROOT_PASSWORD=project -e MYSQL_DATABASE=wiki -d mysql:8
+-----------------------------------------------------------
+# II way of creating db from dumps:
+sudo docker run --name mysql-2 -v /home/ads-mysql/mysql-2:/var/lib/mysql -v /home/ads-mysql/initdb.d:/init-scripts.d -e MYSQL_ROOT_PASSWORD=project -e MYSQL_DATABASE=wiki -d mysql:8 --disable-log-bin  --innodb-log-buffer-size=1677721600
+
+# and then from inside container:
+nohup mysql --password=project --database=wiki -e 'source plwiki-latest-page.sql; source plwiki-latest-pagelinks.sql;' &
+-----------------------------------------------------------
+# basic docker run for db with already created db dir
+sudo docker run --name mysql-1 -p 3306:3306 -v /home/ads-mysql/mysql-1:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=project -e MYSQL_DATABASE=wiki -d mysql:8
+
+# how to connect to db from host console (depending on port)
+mysql --password=project --database=wiki --protocol=TCP --user=root
+mysql --password=project --database=wiki --protocol=TCP --user=root --port=6606
+
+# final commands to run dbs on existing db dirs
+sudo docker run --name mysql-1 -p 3306:3306 -v /home/kacper/ads/mysql-1:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=project -e MYSQL_DATABASE=wiki -d mysql:8 --disable-log-bin  --innodb-log-buffer-size=1677721600  --innodb_buffer_pool_size=2342177280
+sudo docker run --name mysql-2 -p 6606:3306 -v /home/kacper/ads/mysql-2:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=project -e MYSQL_DATABASE=wiki -d mysql:8 --disable-log-bin  --innodb-log-buffer-size=1677721600 --innodb_buffer_pool_size=2342177280
+sudo docker run --name mysql-3 -p 9909:3306 -v /home/kacper/ads/mysql-3:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=project -e MYSQL_DATABASE=wiki -d mysql:8 --disable-log-bin  --innodb-log-buffer-size=1677721600 --innodb_buffer_pool_size=2342177280

@@ -1,0 +1,33 @@
+CREATE TABLE link (
+link_id INT UNSIGNED PRIMARY KEY NOT NULL AUTO_INCREMENT,
+id_from INT(8) UNSIGNED NOT NULL,
+id_to INT(8) UNSIGNED NOT NULL
+);
+
+PRIMARY KEY (id_from, id_to),
+INDEX reversed (id_to, id_from)
+
+SELECT TABLE_NAME AS "Table Name", 
+table_rows AS "Quant of Rows", ROUND( (
+data_length + index_length
+) /1024, 2 ) AS "Total Size Kb"
+FROM information_schema.TABLES
+WHERE information_schema.TABLES.table_schema LIKE '%wiki%'
+LIMIT 0 , 30;
+
+INSERT INTO link (id_from, id_to)
+SELECT pagelinks.pl_from, page.page_id
+FROM pagelinks
+JOIN page
+ON pagelinks.pl_title = page.page_title
+AND pagelinks.pl_namespace = page.page_namespace;
+
+INSERT INTO link (id_from, id_to)
+SELECT pagelinks.pl_from, page.page_id
+FROM pagelinks
+JOIN page
+ON pagelinks.pl_title = page.page_title
+AND pagelinks.pl_namespace = page.page_namespace;
+
+CREATE INDEX forward ON link (id_from, id_to);
+CREATE INDEX backward ON link (id_to, id_from);

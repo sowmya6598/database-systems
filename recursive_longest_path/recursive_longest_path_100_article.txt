@@ -1,0 +1,38 @@
+SET @ending_article = 1;
+SET @starting_article = 2;
+
+WITH RECURSIVE cte (start_id, current_id, path, length) AS
+(
+  SELECT id_from AS start_id, id_to AS current_id, CAST(CONCAT_WS(',', id_from, id_to) as CHAR(65000)) AS path, 1 AS length FROM link
+    WHERE id_from = @starting_article
+  UNION DISTINCT
+  SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    FROM
+        cte AS previous
+            JOIN link ON previous.current_id = link.id_from AND previous.current_id != @ending_article AND FIND_IN_SET(link.id_to, previous.path) < 1
+)
+SELECT * FROM cte WHERE current_id = @ending_article ORDER BY length DESC LIMIT 1;
+
+mysql> SET @ending_article = 1;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SET @starting_article = 2;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> 
+mysql> WITH RECURSIVE cte (start_id, current_id, path, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS current_id, CAST(CONCAT_WS(',', id_from, id_to) as CHAR(65000)) AS path, 1 AS length FROM link
+    ->     WHERE id_from = @starting_article
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.current_id = link.id_from AND previous.current_id != @ending_article AND FIND_IN_SET(link.id_to, previous.path) < 1
+    -> )
+    -> SELECT * FROM cte WHERE current_id = @ending_article ORDER BY length DESC LIMIT 1;
+
+^C^C -- query aborted
+
+# after a few hours of night run, the query was both stuck in a buffer pool loop, searching for a free block and was out of free disk space (it took 40GB already)
+2018-09-23T05:42:51.810687Z 8 [Warning] [MY-011959] [InnoDB] InnoDB: Difficult to find free blocks in the buffer pool (1783073 search iterations)! 1783073 failed attempts to flush a page! Consider increasing the buffer pool size. It is also possible that in your Unix version fsync is very slow, or completely frozen inside the OS kernel. Then upgrading to a newer version of your operating system may help. Look at the number of fsyncs in diagnostic info below. Pending flushes (fsync) log: 0; buffer pool: 0. 731968 OS file reads, 2760323 OS file writes, 23 OS fsyncs. Starting InnoDB Monitor to print further diagnostics to the standard output.

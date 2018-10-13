@@ -1,0 +1,9 @@
+mysql> SELECT COUNT(*) FROM pagelinks WHERE NOT EXISTS (SELECT * FROM page WHERE pagelinks.pl_namespace=page.page_namespace AND pagelinks.pl_title=page.page_title);
++----------+
+| COUNT(*) |
++----------+
+| 13881247 |
++----------+
+1 row in set (9 min 17.23 sec)
+
+# so, there are 13881247 links that point to nonexisting pages

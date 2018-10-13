@@ -1,0 +1,179 @@
+# naive approach - path can lead through the same vertex multiple times and it sums vertices reacheable in less or equal to x steps
+# (though it is easy to filter only vertices reacheable exactly in x steps by adding " WHERE length = x " at the end of the whole query)
+
+mysql> SET @searched_length = 3;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> 
+mysql> WITH RECURSIVE cte (start_id, end_id, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS end_id, 1 AS length FROM link
+    ->     WHERE id_from = '123456'
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.end_id = link.id_from AND length < @searched_length
+    -> )
+    -> SELECT COUNT(DISTINCT end_id) FROM cte;
++------------------------+
+| COUNT(DISTINCT end_id) |
++------------------------+
+|                   5445 |
++------------------------+
+1 row in set (0.03 sec)
+
+mysql> SET @searched_length = 4;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> 
+mysql> WITH RECURSIVE cte (start_id, end_id, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS end_id, 1 AS length FROM link
+    ->     WHERE id_from = '123456'
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.end_id = link.id_from AND length < @searched_length
+    -> )
+    -> SELECT COUNT(DISTINCT end_id) FROM cte;
++------------------------+
+| COUNT(DISTINCT end_id) |
++------------------------+
+|                 310044 |
++------------------------+
+1 row in set (3.37 sec)
+
+mysql> SET @searched_length = 5;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> 
+mysql> WITH RECURSIVE cte (start_id, end_id, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS end_id, 1 AS length FROM link
+    ->     WHERE id_from = '123456'
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.end_id = link.id_from AND length < @searched_length
+    -> )
+    -> SELECT COUNT(DISTINCT end_id) FROM cte;
++------------------------+
+| COUNT(DISTINCT end_id) |
++------------------------+
+|                1036230 |
++------------------------+
+1 row in set (48.30 sec)
+
+mysql> SET @searched_length = 6;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> 
+mysql> WITH RECURSIVE cte (start_id, end_id, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS end_id, 1 AS length FROM link
+    ->     WHERE id_from = '123456'
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.end_id = link.id_from AND length < @searched_length
+    -> )
+    -> SELECT COUNT(DISTINCT end_id) FROM cte;
++------------------------+
+| COUNT(DISTINCT end_id) |
++------------------------+
+|                1445459 |
++------------------------+
+1 row in set (3 min 22.62 sec)
+
+mysql> SET @searched_length = 7;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> 
+mysql> WITH RECURSIVE cte (start_id, end_id, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS end_id, 1 AS length FROM link
+    ->     WHERE id_from = '123456'
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.end_id = link.id_from AND length < @searched_length
+    -> )
+    -> SELECT COUNT(DISTINCT end_id) FROM cte;
++------------------------+
+| COUNT(DISTINCT end_id) |
++------------------------+
+|                1661175 |
++------------------------+
+1 row in set (6 min 38.35 sec)
+
+mysql> SET @searched_length = 8;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> 
+mysql> WITH RECURSIVE cte (start_id, end_id, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS end_id, 1 AS length FROM link
+    ->     WHERE id_from = '123456'
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.end_id = link.id_from AND length < @searched_length
+    -> )
+    -> SELECT COUNT(DISTINCT end_id) FROM cte;
++------------------------+
+| COUNT(DISTINCT end_id) |
++------------------------+
+|                1718207 |
++------------------------+
+1 row in set (10 min 12.33 sec)
+
+mysql> SET @searched_length = 9;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> 
+mysql> WITH RECURSIVE cte (start_id, end_id, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS end_id, 1 AS length FROM link
+    ->     WHERE id_from = '123456'
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.end_id = link.id_from AND length < @searched_length
+    -> )
+    -> SELECT COUNT(DISTINCT end_id) FROM cte;
++------------------------+
+| COUNT(DISTINCT end_id) |
++------------------------+
+|                1736698 |
++------------------------+
+1 row in set (12 min 59.31 sec)
+
+mysql> SET @searched_length = 10;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> 
+mysql> WITH RECURSIVE cte (start_id, end_id, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS end_id, 1 AS length FROM link
+    ->     WHERE id_from = '123456'
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.end_id = link.id_from AND length < @searched_length
+    -> )
+    -> SELECT COUNT(DISTINCT end_id) FROM cte;
+
++------------------------+
+| COUNT(DISTINCT end_id) |
++------------------------+
+|                1738809 |
++------------------------+
+1 row in set (18 min 53.14 sec)

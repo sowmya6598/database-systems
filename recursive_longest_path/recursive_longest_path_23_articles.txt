@@ -1,0 +1,28 @@
+mysql> INSERT INTO link (id_from, id_to) SELECT * FROM (SELECT 2 AS first, 23 AS second  UNION SELECT 23 AS first, 15 AS second  UNION SELECT 8 AS first, 23 AS second  UNION SELECT 17 AS first, 23 AS second  UNION SELECT 23 AS first, 12 AS second  UNION SELECT 5 AS first, 23 AS second  UNION SELECT 23 AS first, 1 AS second ) AS edge WHERE NOT EXISTS (SELECT * FROM link WHERE link.id_from = edge.first AND link.id_to = edge.second);
+Query OK, 7 rows affected (0.01 sec)
+Records: 7  Duplicates: 0  Warnings: 0
+
+mysql> SET @ending_article = 1;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SET @starting_article = 2;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> 
+mysql> WITH RECURSIVE cte (start_id, current_id, path, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS current_id, CAST(CONCAT_WS(',', id_from, id_to) as CHAR(65000)) AS path, 1 AS length FROM link
+    ->     WHERE id_from = @starting_article
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.current_id = link.id_from AND previous.current_id != @ending_article AND FIND_IN_SET(link.id_to, previous.path) < 1
+    -> )
+    -> SELECT * FROM cte WHERE current_id = @ending_article ORDER BY length DESC LIMIT 1;
++----------+------------+-------------------------------------------------------------+--------+
+| start_id | current_id | path                                                        | length |
++----------+------------+-------------------------------------------------------------+--------+
+|        2 |          1 | 2,3,15,12,16,19,10,17,13,21,22,9,18,11,20,4,5,14,6,7,8,23,1 |     22 |
++----------+------------+-------------------------------------------------------------+--------+
+1 row in set (35.94 sec)

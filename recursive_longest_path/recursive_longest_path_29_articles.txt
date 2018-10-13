@@ -1,0 +1,30 @@
+# it already took 6GB of disk space
+
+mysql> INSERT INTO link (id_from, id_to) SELECT * FROM (SELECT 29 AS first, 29 AS second  UNION SELECT 23 AS first, 29 AS second  UNION SELECT 16 AS first, 29 AS second  UNION SELECT 29 AS first, 21 AS second  UNION SELECT 29 AS first, 11 AS second ) AS edge WHERE NOT EXISTS (SELECT * FROM link WHERE link.id_from = edge.first AND link.id_to = edge.second);
+Query OK, 5 rows affected (0.06 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> SET @ending_article = 1;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> SET @starting_article = 2;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> 
+mysql> WITH RECURSIVE cte (start_id, current_id, path, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS current_id, CAST(CONCAT_WS(',', id_from, id_to) as CHAR(65000)) AS path, 1 AS length FROM link
+    ->     WHERE id_from = @starting_article
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.current_id = link.id_from AND previous.current_id != @ending_article AND FIND_IN_SET(link.id_to, previous.path) < 1
+    -> )
+    -> SELECT * FROM cte WHERE current_id = @ending_article ORDER BY length DESC LIMIT 1;
++----------+------------+-------------------------------------------------------------------------+--------+
+| start_id | current_id | path                                                                    | length |
++----------+------------+-------------------------------------------------------------------------+--------+
+|        2 |          1 | 2,3,28,6,26,12,4,22,9,8,23,15,20,24,13,16,29,21,10,17,5,14,18,7,11,19,1 |     26 |
++----------+------------+-------------------------------------------------------------------------+--------+
+1 row in set (11 min 17.67 sec)

@@ -1,0 +1,72 @@
+# preparation of mysql-3 database to be small (only 1000 articles)
+mysql> DELETE FROM link WHERE id_to > 1000 OR id_from > 1000;
+
+Query OK, 131764657 rows affected (10 hours 6 min 22.34 sec)
+-------------------------------------------------------------------------------
+# only 2 thousand links remained
+mysql> SELECT COUNT(*) FROM link;
++----------+
+| COUNT(*) |
++----------+
+|     2024 |
++----------+
+1 row in set (0.00 sec)
+
+-------------------------------------------------------------------------------
+
+SET @ending_article = 998;
+SET @starting_article = 667;
+
+WITH RECURSIVE cte (start_id, current_id, path, length) AS
+(
+  SELECT id_from AS start_id, id_to AS current_id, CAST(CONCAT_WS(',', id_from, id_to) as CHAR(65000)) AS path, 1 AS length FROM link
+    WHERE id_from = @starting_article
+  UNION DISTINCT
+  SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    FROM
+        cte AS previous
+            JOIN link ON previous.current_id = link.id_from AND previous.current_id != @ending_article AND FIND_IN_SET(link.id_to, previous.path) < 1
+)
+SELECT * FROM cte WHERE current_id = @ending_article ORDER BY length DESC LIMIT 1;
+
+mysql> WITH RECURSIVE cte (start_id, current_id, path, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS current_id, CAST(CONCAT_WS(',', id_from, id_to) as CHAR(65000)) AS path, 1 AS length FROM link
+    ->     WHERE id_from = @starting_article
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.current_id = link.id_from AND previous.current_id != @ending_article AND FIND_IN_SET(link.id_to, previous.path) < 1
+    -> )
+    -> SELECT * FROM cte WHERE current_id = @ending_article ORDER BY length DESC LIMIT 1;
+
+ERROR 1114 (HY000): The table '/tmp/#sql1_9_9' is full
+
+# after only 4 hours, query completely filled the drive and crashed, so no chance of finding longest path even for such small database
+-------------------------------------------------------------------------------
+# searching for paths with length < 10 for comparision with full database
+
+mysql> SET @searched_length = 10;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql>
+mysql>  WITH RECURSIVE cte (start_id, end_id, length) AS
+    ->  (
+    ->    SELECT id_from AS start_id, id_to AS end_id, 1 AS length FROM link
+    ->      WHERE id_from = 998
+    ->      UNION DISTINCT
+    ->    SELECT previous.start_id, link.id_to, previous.length + 1
+    ->      FROM
+    ->          cte AS previous
+    ->              JOIN link ON previous.end_id = link.id_from AND length < @searched_length
+    ->  )
+    ->  SELECT COUNT(DISTINCT end_id) FROM cte;
++------------------------+
+| COUNT(DISTINCT end_id) |
++------------------------+
+|                    329 |
++------------------------+
+1 row in set (0.03 sec)
+
+# on the other hand, the query for path of length 10 finished very fast (0.03 sec compared to 18 min 53.14 sec in full database - imagine searching for longest path in full database if difference is so huge)

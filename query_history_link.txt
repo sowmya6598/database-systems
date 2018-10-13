@@ -1,0 +1,214 @@
+----------------------------------------------------- paths of length of 2, but from ALL vertices
+
+mysql> WITH RECURSIVE cte (start_id, current_id, path, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS current_id, CONCAT_WS(',', id_from, id_to) AS path, 1 AS length FROM link
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.current_id = link.id_from
+    -> WHERE FIND_IN_SET(link.id_to, previous.path) < 1 AND length < 3
+    -> )
+    -> SELECT * FROM cte WHERE length = 2;
+	
+ERROR 14 (HY000): Can't change size of file (OS errno 28 - No space left on device)
+# after 15 hours it consumed 60GB of disk space (with temporary tables files) and filled the VM partition
+# we therefore must focus on single starting vertex 
+
+----------------------------------------------------- paths of length of 2
+
+mysql> WITH RECURSIVE cte (start_id, current_id, path, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS current_id, CAST(CONCAT_WS(',', id_from, id_to) as CHAR(65000)) AS path, 1 AS length FROM link
+    -> WHERE id_from = '123456'
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.current_id = link.id_from
+    -> WHERE FIND_IN_SET(link.id_to, previous.path) < 1 AND length < 3
+    -> )
+    -> SELECT * FROM cte WHERE length = 2;
++----------+------------+-----------------------+--------+
+| start_id | current_id | path                  | length |
++----------+------------+-----------------------+--------+
+|   123456 |        827 | 123456,123425,827     |      2 |
+|   123456 |       7219 | 123456,123425,7219    |      2 |
+|   123456 |       7226 | 123456,123425,7226    |      2 |
+|   123456 |       7227 | 123456,123425,7227    |      2 |
+|   123456 |       7428 | 123456,123425,7428    |      2 |
+|   123456 |       7460 | 123456,123425,7460    |      2 |
+|   123456 |       7483 | 123456,123425,7483    |      2 |
+|   123456 |       7512 | 123456,123425,7512    |      2 |
+|   123456 |       7586 | 123456,123425,7586    |      2 |
+|   123456 |       7600 | 123456,123425,7600    |      2 |
+|   123456 |       9444 | 123456,123425,9444    |      2 |
+|   123456 |      17474 | 123456,123425,17474   |      2 |
+|   123456 |      39647 | 123456,123425,39647   |      2 |
+|   123456 |      52993 | 123456,123425,52993   |      2 |
+|   123456 |      60421 | 123456,123425,60421   |      2 |
+|   123456 |     122771 | 123456,123425,122771  |      2 |
+|   123456 |     193153 | 123456,123425,193153  |      2 |
+|   123456 |    1408925 | 123456,123425,1408925 |      2 |
+|   123456 |    2709833 | 123456,123425,2709833 |      2 |
+|   123456 |    4223289 | 123456,123425,4223289 |      2 |
++----------+------------+-----------------------+--------+
+20 rows in set (0.18 sec)
+
+----------------------------------------------------- paths of length of 3
+
+mysql> WITH RECURSIVE cte (start_id, current_id, path, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS current_id, CAST(CONCAT_WS(',', id_from, id_to) as CHAR(65000)) AS path, 1 AS length FROM link
+    -> WHERE id_from = '123456'
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.current_id = link.id_from
+    -> WHERE FIND_IN_SET(link.id_to, previous.path) < 1 AND length < 4
+    -> )
+    -> SELECT * FROM cte WHERE length = 3;
++----------+------------+-------------------------------+--------+
+| start_id | current_id | path                          | length |
++----------+------------+-------------------------------+--------+
+|   123456 |         24 | 123456,123425,827,24          |      3 |
+|   123456 |         64 | 123456,123425,827,64          |      3 |
+|   123456 |         79 | 123456,123425,827,79          |      3 |
+|   123456 |        503 | 123456,123425,827,503         |      3 |
+|   123456 |        504 | 123456,123425,827,504         |      3 |
+|   123456 |        522 | 123456,123425,827,522         |      3 |
+|   123456 |        724 | 123456,123425,827,724         |      3 |
+....
+....
+....
+|   123456 |    2807565 | 123456,123425,4223289,2807565 |      3 |
+|   123456 |    2936078 | 123456,123425,4223289,2936078 |      3 |
+|   123456 |    2942463 | 123456,123425,4223289,2942463 |      3 |
+|   123456 |    2993266 | 123456,123425,4223289,2993266 |      3 |
+|   123456 |    2993609 | 123456,123425,4223289,2993609 |      3 |
+|   123456 |    3070758 | 123456,123425,4223289,3070758 |      3 |
+|   123456 |    3446511 | 123456,123425,4223289,3446511 |      3 |
+|   123456 |    3464617 | 123456,123425,4223289,3464617 |      3 |
+|   123456 |    3466964 | 123456,123425,4223289,3466964 |      3 |
+|   123456 |    3800707 | 123456,123425,4223289,3800707 |      3 |
+|   123456 |    3823868 | 123456,123425,4223289,3823868 |      3 |
+|   123456 |    3960981 | 123456,123425,4223289,3960981 |      3 |
+|   123456 |    4169361 | 123456,123425,4223289,4169361 |      3 |
++----------+------------+-------------------------------+--------+
+9881 rows in set (1 min 29.75 sec)
+
+----------------------------------------------------- # but after taking only unique pairs, paths of length of 3
+
+mysql> WITH RECURSIVE cte (start_id, current_id, path, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS current_id, CAST(CONCAT_WS(',', id_from, id_to) as CHAR(65000)) AS path, 1 AS length FROM link
+    -> WHERE id_from = '123456'
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.current_id = link.id_from
+    -> WHERE FIND_IN_SET(link.id_to, previous.path) < 1 AND length < 4
+    -> )
+    -> SELECT DISTINCT start_id, current_id, length FROM cte WHERE length = 3;
++----------+------------+--------+
+| start_id | current_id | length |
++----------+------------+--------+
+|   123456 |         24 |      3 |
+|   123456 |         64 |      3 |
+|   123456 |         79 |      3 |
+|   123456 |        503 |      3 |
+....
+....
+....
+|   123456 |    2993609 |      3 |
+|   123456 |    3070758 |      3 |
+|   123456 |    3446511 |      3 |
+|   123456 |    3466964 |      3 |
+|   123456 |    3800707 |      3 |
+|   123456 |    3960981 |      3 |
++----------+------------+--------+
+5443 rows in set (1 min 36.37 sec)
+
+----------------------------------------------------- paths of length of 4
+
+SET @searched_length = 4;
+
+mysql> WITH RECURSIVE cte (start_id, current_id, path, length) AS
+    -> (
+    ->   SELECT id_from AS start_id, id_to AS current_id, CAST(CONCAT_WS(',', id_from, id_to) as CHAR(65000)) AS path, 1 AS length FROM link
+    -> WHERE id_from = '123456'
+    ->   UNION DISTINCT
+    ->   SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    ->     FROM
+    ->         cte AS previous
+    ->             JOIN link ON previous.current_id = link.id_from
+    -> WHERE FIND_IN_SET(link.id_to, previous.path) < 1 AND length < @searched_length + 1
+    -> )
+    -> SELECT COUNT(DISTINCT start_id, current_id, length) FROM cte WHERE length = @searched_length;
+	
+# after running it for ~2h (where it already consumed 20GB of disk space) we realized that there are small self-loop links in db (so links that points to the same vertice they are leaving)
+# so we aborted the query and deleted all such links from db (as they are just obstacles in our tasks)
+
+# it didn't change results of previous queries however, because the queries were vulnerable for such self-loops only if it occured in first edge, which was not the case for any edge leaving node 123456
+# anyway, seeing how the running time for queries grows, recursive approach was abandoned
+
+----------------------------------------------------- # another query approach, paths of length of 3
+
+mysql> SELECT COUNT(DISTINCT link2.id_to) FROM
+    ->     (SELECT * FROM link WHERE id_from = 123456) as link0
+    ->         JOIN link as link1 
+    ->             ON link0.id_to = link1.id_from AND link0.id_from != link1.id_to
+    ->         JOIN link as link2
+    ->             ON link1.id_to = link2.id_from AND link0.id_from != link2.id_to AND link1.id_from != link2.id_to;
++-----------------------------+
+| COUNT(DISTINCT link2.id_to) |
++-----------------------------+
+|                        5443 |
++-----------------------------+
+1 row in set (0.01 sec)
+
+# for paths of length 3 the difference is clearly visible - more than 1.5 min vs 0.01 sec
+
+----------------------------------------------------- paths of length of 4
+
+mysql> SELECT COUNT(DISTINCT link3.id_to) FROM  
+    ->     (SELECT * FROM link WHERE id_from = 123456) as link0                                                                                                                                                ->     (SELECT * FROM link WHERE id_from = 123456) as link0
+    ->         JOIN link as link1 
+    ->             ON link0.id_to = link1.id_from AND link0.id_from != link1.id_to
+    ->         JOIN link as link2
+    ->             ON link1.id_to = link2.id_from AND link0.id_from != link2.id_to AND link1.id_from != link2.id_to
+    ->         JOIN link as link3
+    ->             ON link2.id_to = link3.id_from AND link0.id_from != link3.id_to AND link1.id_from != link3.id_to AND link2.id_from != link3.id_to;
++-----------------------------+
+| COUNT(DISTINCT link3.id_to) |
++-----------------------------+
+|                      310042 |
++-----------------------------+
+1 row in set (7.87 sec)
+
+# time difference between this and recursive approach is huge
+
+----------------------------------------------------- paths of length of 5
+
+mysql> SELECT COUNT(DISTINCT link4.id_to) FROM
+    ->     (SELECT * FROM link WHERE id_from = 123456) as link0
+    ->         JOIN link as link1 
+    ->             ON link0.id_to = link1.id_from AND link0.id_from != link1.id_to
+    ->         JOIN link as link2
+    ->             ON link1.id_to = link2.id_from AND link0.id_from != link2.id_to AND link1.id_from != link2.id_to
+    ->         JOIN link as link3
+    ->             ON link2.id_to = link3.id_from AND link0.id_from != link3.id_to AND link1.id_from != link3.id_to AND link2.id_from != link3.id_to
+    ->         JOIN link as link4
+    ->             ON link3.id_to = link4.id_from AND link0.id_from != link4.id_to AND link1.id_from != link4.id_to AND link2.id_from != link4.id_to AND link3.id_from != link4.id_to;
+
++-----------------------------+
+| COUNT(DISTINCT link4.id_to) |
++-----------------------------+
+|                     1036229 |
++-----------------------------+
+1 row in set (56 min 43.45 sec)
+
+# time is growing drastically, there is no way that this approach will work with path = 10

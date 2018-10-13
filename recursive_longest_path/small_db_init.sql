@@ -1,0 +1,60 @@
+-- Exemplary small graph db
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+--
+-- Table structure for table `link`
+--
+
+DROP TABLE IF EXISTS `link`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `link` (
+  `link_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id_from` int(8) unsigned NOT NULL,
+  `id_to` int(8) unsigned NOT NULL,
+  PRIMARY KEY (`link_id`),
+  KEY `forward` (`id_from`,`id_to`),
+  KEY `backward` (`id_to`,`id_from`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Data for table `link`
+--
+
+LOCK TABLES `link` WRITE;
+/*!40000 ALTER TABLE `link` DISABLE KEYS */;
+INSERT INTO `link` (id_from,id_to) VALUES 
+(1,3),(1,4),(1,10),(2,3),(2,5),(2,7),(3,1),(3,2),(4,5),(5,1),(5,6),(5,7),(6,7),(7,6),(7,8),(8,3),(9,3),(9,8),(10,9),
+(11,13),(11,14),(11,20),(12,13),(12,15),(12,17),(13,11),(13,12),(14,15),(15,11),(15,16),(15,17),(16,17),(17,16),(17,18),(18,13),(19,13),(19,18),(20,19),
+(21,23),(21,24),(21,30),(22,23),(22,25),(22,27),(23,21),(23,22),(24,25),(25,21),(25,26),(25,27),(26,27),(27,26),(27,28),(28,23),(29,23),(29,28),(30,29),
+(31,33),(31,34),(31,40),(32,33),(32,35),(32,37),(33,31),(33,32),(34,35),(35,31),(35,36),(35,37),(36,37),(37,36),(37,38),(38,33),(39,33),(39,38),(40,39),
+(41,43),(41,44),(41,50),(42,43),(42,45),(42,47),(43,41),(43,42),(44,45),(45,41),(45,46),(45,47),(46,47),(47,46),(47,48),(48,43),(49,43),(49,48),(50,49),
+(51,53),(51,54),(51,60),(52,53),(52,55),(52,57),(53,51),(53,52),(54,55),(55,51),(55,56),(55,57),(56,57),(57,56),(57,58),(58,53),(59,53),(59,58),(60,59),
+(61,63),(61,64),(61,70),(62,63),(62,65),(62,67),(63,61),(63,62),(64,65),(65,61),(65,66),(65,67),(66,67),(67,66),(67,68),(68,63),(69,63),(69,68),(70,69),
+(71,73),(71,74),(71,80),(72,73),(72,75),(72,77),(73,71),(73,72),(74,75),(75,71),(75,76),(75,77),(76,77),(77,76),(77,78),(78,73),(79,73),(79,78),(80,79),
+(81,83),(81,84),(81,90),(82,83),(82,85),(82,87),(83,81),(83,82),(84,85),(85,81),(85,86),(85,87),(86,87),(87,86),(87,88),(88,83),(89,83),(89,88),(90,89),
+(91,93),(91,94),(91,100),(92,93),(92,95),(92,97),(93,91),(93,92),(94,95),(95,91),(95,96),(95,97),(96,97),(97,96),(97,98),(98,93),(99,93),(99,98),(100,99),
+(1,11),(11,21),(21,31),(31,41),(41,51),(51,61),(61,71),(71,81),(81,91),(91,1),
+(6,16),(16,26),(26,36),(36,46),(46,56),(56,66),(66,76),(76,86),(86,96),(96,6);
+/*!40000 ALTER TABLE `link` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;

@@ -1,0 +1,13 @@
+Laptop spec:
+Processor - Intel Core i7-7700HQ, 8 CPUs ~ 2.8GHz
+Memory - 16384MB RAM
+Disk - Samsung SSD 850 EVO 250GB on SATA 6.0Gb/s with RAPID mode and over-provisioning enabled
+
+VM spec:
+VirtualBox Version 5.2.18 r124319 (Qt5.6.2)
+4.15.0-34-generic Ubuntu 18.04.1 LTS
+Processor - 4 CPUs available, 100% execution cap
+Memory - 10778MB RAM
+
+MySQL:
+Server version: 8.0.12 MySQL Community Server - GPL

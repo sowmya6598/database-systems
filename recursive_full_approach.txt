@@ -1,0 +1,89 @@
+--------------------------------------------------------- recursive approach with proper paths (loops filtered out)
+SET @searched_length = 3;
+
+WITH RECURSIVE cte (start_id, end_id, length, n0, n1, n2, n3) AS
+(
+   SELECT id_from AS start_id, id_to AS end_id, 1 AS length, id_from AS n0, id_to AS n1, -1 AS n2, -1 AS n3
+   FROM link
+     WHERE id_from = '123456'
+   UNION DISTINCT
+   SELECT previous.start_id, link.id_to, previous.length + 1, previous.n0, previous.n1, IF(previous.length=1, link.id_to, previous.n2), IF(previous.length=2, link.id_to, previous.n3)
+     FROM
+         cte AS previous
+             JOIN link ON previous.end_id = link.id_from AND previous.length < @searched_length AND link.id_to != previous.n1 AND link.id_to != previous.n2 AND link.id_to != previous.n3
+)
+SELECT COUNT(DISTINCT end_id) FROM cte;
+
+
+mysql> WITH RECURSIVE cte (start_id, end_id, length, n0, n1, n2, n3) AS
+    -> (
+    ->    SELECT id_from AS start_id, id_to AS end_id, 1 AS length, id_from AS n0, id_to AS n1, -1 AS n2, -1 AS n3
+    ->    FROM link
+    ->      WHERE id_from = '123456'
+    ->    UNION DISTINCT
+    ->    SELECT previous.start_id, link.id_to, previous.length + 1, previous.n0, previous.n1, IF(previous.length=1, link.id_to, previous.n2), IF(previous.length=2, link.id_to, previous.n3)
+    ->      FROM
+    ->          cte AS previous
+    ->              JOIN link ON previous.end_id = link.id_from AND previous.length < @searched_length AND link.id_to != previous.n1 AND link.id_to != previous.n2 AND link.id_to != previous.n3
+    -> )
+    -> SELECT COUNT(DISTINCT end_id) FROM cte;
++------------------------+
+| COUNT(DISTINCT end_id) |
++------------------------+
+|                   5445 |
++------------------------+
+1 row in set (0.07 sec)
+---------------------------------------------------------
+SET @searched_length = 4;
+
+WITH RECURSIVE cte (start_id, end_id, length, n0, n1, n2, n3, n4) AS
+(
+   SELECT id_from AS start_id, id_to AS end_id, 1 AS length, id_from AS n0, id_to AS n1, -1 AS n2, -1 AS n3, -1 AS n4
+   FROM link
+     WHERE id_from = '123456'
+   UNION DISTINCT
+   SELECT previous.start_id, link.id_to, previous.length + 1, previous.n0, previous.n1, IF(previous.length=1, link.id_to, previous.n2), IF(previous.length=2, link.id_to, previous.n3), IF(previous.length=3, link.id_to, previous.n4)
+     FROM
+         cte AS previous
+             JOIN link ON previous.end_id = link.id_from AND previous.length < @searched_length AND link.id_to != previous.n1 AND link.id_to != previous.n2 AND link.id_to != previous.n3 AND link.id_to != previous.n4
+)
+SELECT COUNT(DISTINCT end_id) FROM cte;
+
+
+mysql> WITH RECURSIVE cte (start_id, end_id, length, n0, n1, n2, n3, n4) AS
+    -> (
+    ->    SELECT id_from AS start_id, id_to AS end_id, 1 AS length, id_from AS n0, id_to AS n1, -1 AS n2, -1 AS n3, -1 AS n4
+    ->    FROM link
+    ->      WHERE id_from = '123456'
+    ->    UNION DISTINCT
+    ->    SELECT previous.start_id, link.id_to, previous.length + 1, previous.n0, previous.n1, IF(previous.length=1, link.id_to, previous.n2), IF(previous.length=2, link.id_to, previous.n3), IF(previous.length=3, link.id_to, previous.n4)
+    ->      FROM
+    ->          cte AS previous
+    ->              JOIN link ON previous.end_id = link.id_from AND previous.length < @searched_length AND link.id_to != previous.n1 AND link.id_to != previous.n2 AND link.id_to != previous.n3 AND link.id_to != previous.n4
+    -> )
+    -> SELECT COUNT(DISTINCT end_id) FROM cte;
++------------------------+
+| COUNT(DISTINCT end_id) |
++------------------------+
+|                 310044 |
++------------------------+
+1 row in set (45.74 sec)
+---------------------------------------------------------
+mysql> SET @searched_length = 5;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> 
+mysql> WITH RECURSIVE cte (start_id, end_id, length, n0, n1, n2, n3, n4, n5) AS
+    -> (
+    ->    SELECT id_from AS start_id, id_to AS end_id, 1 AS length, id_from AS n0, id_to AS n1, -1 AS n2, -1 AS n3, -1 AS n4, -1 AS n5
+    ->    FROM link
+    ->      WHERE id_from = '123456'
+    ->    UNION DISTINCT
+    ->    SELECT previous.start_id, link.id_to, previous.length + 1, previous.n0, previous.n1, IF(previous.length=1, link.id_to, previous.n2), IF(previous.length=2, link.id_to, previous.n3), IF(previous.length=3, link.id_to, previous.n4), IF(previous.length=4, link.id_to, previous.n5)
+    ->      FROM
+    ->          cte AS previous
+    ->              JOIN link ON previous.end_id = link.id_from AND previous.length < @searched_length AND link.id_to != previous.n1 AND link.id_to != previous.n2 AND link.id_to != previous.n3 AND link.id_to != previous.n4 AND link.id_to != previous.n5
+    -> )
+    -> SELECT COUNT(DISTINCT end_id) FROM cte;
+ERROR 14 (HY000): Can't change size of file (OS errno 28 - No space left on device)
+# after 16 hours it devour more than almost 40GBs of disk space

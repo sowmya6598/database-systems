@@ -1,0 +1,74 @@
+mysql> SELECT TABLE_NAME AS "Table Name", 
+    -> table_rows AS "Quant of Rows", ROUND( (
+    -> data_length + index_length
+    -> ) /1024, 2 ) AS "Total Size Kb"
+    -> FROM information_schema.TABLES
+    -> WHERE information_schema.TABLES.table_schema LIKE '%wiki%'
+    -> LIMIT 0 , 30;
++------------+---------------+---------------+
+| Table Name | Quant of Rows | Total Size Kb |
++------------+---------------+---------------+
+| link       |             0 |         32.00 |
+| page       |       2763746 |     387560.00 |
+| pagelinks  |     147532600 |   16595960.00 |
++------------+---------------+---------------+
+3 rows in set (0.02 sec)
+
+
+
+mysql> INSERT INTO link (id_from, id_to)
+    -> SELECT pagelinks.pl_from, page.page_id
+    -> FROM pagelinks
+    -> JOIN page
+    -> ON pagelinks.pl_title = page.page_title
+    -> AND pagelinks.pl_namespace = page.page_namespace;
+Query OK, 131799956 rows affected (25 min 57.55 sec)
+Records: 131799956  Duplicates: 0  Warnings: 0
+
+
+
+mysql> SELECT TABLE_NAME AS "Table Name", 
+    -> table_rows AS "Quant of Rows", ROUND( (
+    -> data_length + index_length
+    -> ) /1024, 2 ) AS "Total Size Kb"
+    -> FROM information_schema.TABLES
+    -> WHERE information_schema.TABLES.table_schema LIKE '%wiki%'
+    -> LIMIT 0 , 30;
++------------+---------------+---------------+
+| Table Name | Quant of Rows | Total Size Kb |
++------------+---------------+---------------+
+| page       |       2763746 |     387560.00 |
+| pagelinks  |     147532600 |   16595960.00 |
+| link       |     131555359 |    4161536.00 |
++------------+---------------+---------------+
+3 rows in set (0.01 sec)
+
+mysql> DROP TABLE page;
+Query OK, 0 rows affected (0.09 sec)
+
+mysql> DROP TABLE pagelinks;
+Query OK, 0 rows affected (0.25 sec)
+
+kacper@kacper-VirtualBox:~/ads$ sudo du -sk *
+17472052	base-1   # base with initial tables page and pagelinks
+11867696	mysql-2  # base with single link table
+
+mysql> CREATE INDEX forward ON link (id_from, id_to);
+Query OK, 0 rows affected (9 min 57.57 sec)
+
+mysql> CREATE INDEX backward ON link (id_to, id_from);
+Query OK, 0 rows affected (11 min 19.91 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+------------------------------------------------- # after running some queries and realizing there are evil self-looping links
+
+mysql> DELETE FROM link WHERE id_from = id_to;
+Query OK, 33275 rows affected (2 min 19.32 sec)
+
+mysql> SELECT COUNT(*) FROM link;
++-----------+
+| COUNT(*)  |
++-----------+
+| 131766681 |
++-----------+
+1 row in set (51.28 sec)

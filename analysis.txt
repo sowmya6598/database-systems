@@ -1,0 +1,39 @@
+------------------------------------------------- how many articles out there are reachable through any link
+SELECT COUNT(*) FROM (SELECT id_to FROM link GROUP BY id_to) AS a;
+
+mysql> SELECT COUNT(*) FROM (SELECT id_to FROM link GROUP BY id_to) AS a;
++----------+
+| COUNT(*) |
++----------+
+|  1841993 |
++----------+
+1 row in set (8.16 sec)
+
+so there is 2763746-1841993=921753 articles not reachable through any link
+
+taking into account that we can reach 1738809 in 10 moves from our randomly chosen article, that is 103184 potentially reachable articles not reached in 10 moves
+------------------------------------------------- how many articles out there are redirects
+SELECT COUNT(*) FROM page WHERE page_is_redirect = 1;
+
+mysql> SELECT COUNT(*) FROM page WHERE page_is_redirect = 1;
++----------+
+| COUNT(*) |
++----------+
+|   440939 |
++----------+
+1 row in set (0.48 sec)
+------------------------------------------------- how many articles out there are reachable through any link in at least 2 moves (eliminates simple loops with 2 articles)
+SELECT COUNT(*) FROM (SELECT l_2.id_to FROM link AS l_1 JOIN link AS l_2 ON l_1.id_to = l_2.id_from AND l_1.id_from != l_2.id_to GROUP BY l_2.id_to) AS a;
+
+mysql> SELECT COUNT(*) FROM (SELECT l_2.id_to FROM link AS l_1 JOIN link AS l_2 ON l_1.id_to = l_2.id_from AND l_1.id_from != l_2.id_to GROUP BY l_2.id_to) AS a; 
+
++----------+
+| COUNT(*) |
++----------+
+|  1767565 |
++----------+
+1 row in set (1 day 6 hours 6 min 41.35 sec)
+
+so there is 2763746-1767565=996181 articles not reachable through paths of length 2 (so we can assume that they are not reachable)
+
+similar to first query, we can calculate that there is 28756 potentially reachable articles not reached in 10 moves

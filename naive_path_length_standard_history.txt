@@ -1,0 +1,18 @@
+# on the other hand, naive approach (recurring nodes) on standard sql query is much slower than on recursive (not even divided the time of normal approach by two)
+
+mysql> SELECT COUNT(DISTINCT link4.id_to) FROM
+    ->     (SELECT * FROM link WHERE id_from = 123456) as link0
+    ->         JOIN link as link1 
+    ->             ON link0.id_to = link1.id_from
+    ->         JOIN link as link2
+    ->             ON link1.id_to = link2.id_from
+    ->         JOIN link as link3
+    ->             ON link2.id_to = link3.id_from
+    ->         JOIN link as link4
+    ->             ON link3.id_to = link4.id_from;
++-----------------------------+
+| COUNT(DISTINCT link4.id_to) |
++-----------------------------+
+|                     1036230 |
++-----------------------------+
+1 row in set (37 min 43.29 sec)

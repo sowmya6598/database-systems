@@ -1,0 +1,106 @@
+WITH RECURSIVE cte (start_id, current_id, path, length) AS
+(
+  SELECT page_id AS start_id, page_id AS current_id, CAST(page_id as CHAR(65000)) AS path, 1 AS length FROM pagelinks
+  UNION DISTINCT
+  SELECT previous.start_id, page.page_id, CONCAT_WS(',', previous.path, page.page_id), previous.length + 1
+    FROM
+        cte AS previous
+            JOIN pagelinks ON previous.current_id = pagelinks.pl_from
+            JOIN page ON pagelinks.pl_title = page.page_title AND pagelinks.pl_namespace = page.page_namespace
+    WHERE FIND_IN_SET(page.page_id, previous.path) < 1 AND length < 2
+)
+SELECT * FROM cte WHERE length = 1;
+
+-------------------------------------------------
+
+WITH RECURSIVE cte (start_id, current_id, path, length) AS
+(
+  SELECT id_from AS start_id, id_to AS current_id, CONCAT_WS(',', id_from, id_to) AS path, 1 AS length FROM link
+  UNION DISTINCT
+  SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    FROM
+        cte AS previous
+            JOIN link ON previous.current_id = link.id_from
+    WHERE FIND_IN_SET(link.id_to, previous.path) < 1 AND length < 3
+)
+SELECT * FROM cte WHERE length = 2;
+
+--------------------------------------------------
+
+WITH RECURSIVE cte (start_id, current_id, path, length) AS
+(
+  SELECT id_from AS start_id, id_to AS current_id, CAST(CONCAT_WS(',', id_from, id_to) as CHAR(65000)) AS path, 1 AS length FROM link
+    WHERE id_from = '123456'
+  UNION DISTINCT
+  SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    FROM
+        cte AS previous
+            JOIN link ON previous.current_id = link.id_from
+    WHERE FIND_IN_SET(link.id_to, previous.path) < 1 AND length < 4
+)
+SELECT * FROM cte WHERE length = 3;
+
+--------------------------------------------------
+
+WITH RECURSIVE cte (start_id, current_id, path, length) AS
+(
+  SELECT id_from AS start_id, id_to AS current_id, CAST(CONCAT_WS(',', id_from, id_to) as CHAR(65000)) AS path, 1 AS length FROM link
+    WHERE id_from = '123456'
+  UNION DISTINCT
+  SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    FROM
+        cte AS previous
+            JOIN link ON previous.current_id = link.id_from
+    WHERE FIND_IN_SET(link.id_to, previous.path) < 1 AND length < 4
+)
+SELECT DISTINCT start_id, current_id, length FROM cte WHERE length = 3;
+
+--------------------------------------------------
+
+SET @searched_length = 3;
+
+WITH RECURSIVE cte (start_id, current_id, path, length) AS
+(
+  SELECT id_from AS start_id, id_to AS current_id, CAST(CONCAT_WS(',', id_from, id_to) as CHAR(65000)) AS path, 1 AS length FROM link
+    WHERE id_from = '123456'
+  UNION DISTINCT
+  SELECT previous.start_id, link.id_to, CONCAT_WS(',', previous.path, link.id_to), previous.length + 1
+    FROM
+        cte AS previous
+            JOIN link ON previous.current_id = link.id_from
+    WHERE FIND_IN_SET(link.id_to, previous.path) < 1 AND length < @searched_length + 1
+)
+SELECT COUNT(DISTINCT start_id, current_id, length) FROM cte WHERE length = @searched_length;
+
+--------------------------------------------------
+
+SELECT COUNT(DISTINCT link2.id_to) FROM
+    (SELECT * FROM link WHERE id_from = 123456) as link0
+        JOIN link as link1 
+            ON link0.id_to = link1.id_from AND link0.id_from != link1.id_to
+        JOIN link as link2
+            ON link1.id_to = link2.id_from AND link0.id_from != link2.id_to AND link1.id_from != link2.id_to;
+
+---------------------------------------------------
+
+SELECT COUNT(DISTINCT link3.id_to) FROM
+    (SELECT * FROM link WHERE id_from = 123456) as link0
+        JOIN link as link1 
+            ON link0.id_to = link1.id_from AND link0.id_from != link1.id_to
+        JOIN link as link2
+            ON link1.id_to = link2.id_from AND link0.id_from != link2.id_to AND link1.id_from != link2.id_to
+        JOIN link as link3
+            ON link2.id_to = link3.id_from AND link0.id_from != link3.id_to AND link1.id_from != link3.id_to AND link2.id_from != link3.id_to;
+
+---------------------------------------------------
+
+SELECT COUNT(DISTINCT link4.id_to) FROM
+    (SELECT * FROM link WHERE id_from = 123456) as link0
+        JOIN link as link1 
+            ON link0.id_to = link1.id_from AND link0.id_from != link1.id_to
+        JOIN link as link2
+            ON link1.id_to = link2.id_from AND link0.id_from != link2.id_to AND link1.id_from != link2.id_to
+        JOIN link as link3
+            ON link2.id_to = link3.id_from AND link0.id_from != link3.id_to AND link1.id_from != link3.id_to AND link2.id_from != link3.id_to
+        JOIN link as link4
+            ON link3.id_to = link4.id_from AND link0.id_from != link4.id_to AND link1.id_from != link4.id_to AND link2.id_from != link4.id_to AND link3.id_from != link4.id_to;
